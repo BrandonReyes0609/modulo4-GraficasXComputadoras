@@ -5,11 +5,13 @@ mod sphere;
 mod material;
 mod intersect;
 mod color;
+mod camera;  // Agregar el módulo de la cámara
 
 use crate::framebuffer::Framebuffer;
 use crate::render::render;
 use crate::sphere::Sphere;
 use crate::material::Material;
+use crate::camera::Camera;  // Usar la cámara
 use crate::color::Color;
 use nalgebra_glm::Vec3;
 use std::fs::File;
@@ -20,6 +22,13 @@ fn main() -> io::Result<()> {
     let height = 600;
     let mut framebuffer = Framebuffer::new(width, height);
 
+    // Definir la cámara
+    let camera = Camera::new(
+        Vec3::new(0.0, 0.0, 5.0), // Eye (posición de la cámara)
+        Vec3::new(0.0, 0.0, 0.0), // Center (punto de enfoque)
+        Vec3::new(0.0, 1.0, 0.0), // Up (dirección arriba)
+    );
+
     let red_material = Material::new(Color::new(255, 0, 0));
     let green_material = Material::new(Color::new(0, 255, 0));
 
@@ -28,7 +37,7 @@ fn main() -> io::Result<()> {
         Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, green_material),
     ];
 
-    render(&mut framebuffer, &objects[..]);
+    render(&mut framebuffer, &objects[..], &camera);  // Pasar la cámara al render
 
     // Escribir el framebuffer en un archivo PPM
     let mut file = File::create("output.ppm")?;
@@ -39,13 +48,12 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
+// Función para escribir el archivo PPM
 fn write_ppm(file: &mut File, framebuffer: &Framebuffer) -> io::Result<()> {
-    // Cabecera del archivo PPM
     writeln!(file, "P3")?;
     writeln!(file, "{} {}", framebuffer.width, framebuffer.height)?;
     writeln!(file, "255")?;
 
-    // Escribir los datos de color de cada píxel
     for y in 0..framebuffer.height {
         for x in 0..framebuffer.width {
             let pixel = framebuffer.get_pixel(x, y);
