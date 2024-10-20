@@ -1,7 +1,8 @@
 [package]
-name = "codigo"
+name = "codigo3"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nalgebra-glm = "0.14"
+image = "0.24.5"
+minifb = "0.20"
