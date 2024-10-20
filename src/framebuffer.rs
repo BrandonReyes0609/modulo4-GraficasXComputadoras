@@ -22,4 +22,9 @@ impl Framebuffer {
     pub fn point(&mut self, x: usize, y: usize, color: Vec3) {
         self.set_current_color(x, y, color);
     }
+
+    // Método para obtener el color del píxel en la posición (x, y)
+    pub fn get_pixel(&self, x: usize, y: usize) -> Vec3 {
+        self.buffer[y * self.width + x]
+    }
 }
