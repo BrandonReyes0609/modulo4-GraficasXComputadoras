@@ -1,8 +1,9 @@
 use nalgebra_glm::{normalize, Vec3};
 use crate::framebuffer::Framebuffer;
-use crate::cast_ray::{cast_ray, Object};
+use crate::cast_ray::cast_ray;
+use crate::sphere::Sphere;
 
-pub fn render(framebuffer: &mut Framebuffer, objects: &[Object]) {
+pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere]) {
     let width = framebuffer.width as f32;
     let height = framebuffer.height as f32;
     let aspect_ratio = width / height;
@@ -23,7 +24,11 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Object]) {
             let pixel_color = cast_ray(&Vec3::new(0.0, 0.0, 0.0), &ray_direction, objects);
 
             // Dibuja el píxel en pantalla con el color devuelto
-            framebuffer.point(x, y, pixel_color);
+            framebuffer.point(x, y, Vec3::new(
+                ((pixel_color >> 16) & 0xFF) as f32 / 255.0,
+                ((pixel_color >> 8) & 0xFF) as f32 / 255.0,
+                (pixel_color & 0xFF) as f32 / 255.0,
+            ));
         }
     }
 }

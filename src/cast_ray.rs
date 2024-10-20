@@ -1,10 +1,12 @@
 use nalgebra_glm::Vec3;
+use crate::sphere::Sphere;
+use crate::ray_intersect::RayIntersect;
 
-// Estructura vacía para representar objetos
-pub struct Object;
-
-// Función para simular el lanzamiento de un rayo
-pub fn cast_ray(origin: &Vec3, direction: &Vec3, _objects: &[Object]) -> Vec3 {
-    // Para simplicidad, se devuelve un color rojo por defecto
-    Vec3::new(1.0, 0.0, 0.0) // Color rojo
+pub fn cast_ray(ray_origin: &Vec3, ray_direction: &Vec3, objects: &[Sphere]) -> u32 {
+    for object in objects {
+        if object.ray_intersect(ray_origin, ray_direction) {
+            return 0xFFFFFF; // Color blanco si hay intersección
+        }
+    }
+    0x000000 // Color negro si no hay intersección
 }
