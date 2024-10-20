@@ -1,12 +1,18 @@
 use nalgebra_glm::Vec3;
 use crate::sphere::Sphere;
-use crate::ray_intersect::RayIntersect;
+use crate::intersect::Intersect;
 
-pub fn cast_ray(ray_origin: &Vec3, ray_direction: &Vec3, objects: &[Sphere]) -> u32 {
-    for object in objects {
-        if object.ray_intersect(ray_origin, ray_direction) {
-            return 0xFFFFFF; // Color blanco si hay intersección
+pub fn cast_ray(ray_origin: &Vec3, ray_direction: &Vec3, objects: &[Sphere]) -> Intersect {
+    let mut closest_intersect = Intersect::empty();
+    let mut closest_distance = f32::MAX;
+
+    for object in objects.iter() { // Uso de `.iter()` para iterar sobre los objetos
+        let intersect = object.ray_intersect(ray_origin, ray_direction);
+        if intersect.is_intersecting && intersect.distance < closest_distance {
+            closest_distance = intersect.distance;
+            closest_intersect = intersect;
         }
     }
-    0x000000 // Color negro si no hay intersección
+
+    closest_intersect
 }

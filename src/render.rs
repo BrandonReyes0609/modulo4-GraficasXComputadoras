@@ -20,15 +20,19 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere]) {
             // Calcula la dirección del rayo para este píxel
             let ray_direction = normalize(&Vec3::new(screen_x, screen_y, -1.0));
 
-            // Lanza el rayo y obtiene el color del píxel
-            let pixel_color = cast_ray(&Vec3::new(0.0, 0.0, 0.0), &ray_direction, objects);
+            // Lanza el rayo y obtiene el objeto intersectado
+            let intersect = cast_ray(&Vec3::new(0.0, 0.0, 0.0), &ray_direction, objects);
 
-            // Dibuja el píxel en pantalla con el color devuelto
-            framebuffer.point(x, y, Vec3::new(
-                ((pixel_color >> 16) & 0xFF) as f32 / 255.0,
-                ((pixel_color >> 8) & 0xFF) as f32 / 255.0,
-                (pixel_color & 0xFF) as f32 / 255.0,
-            ));
+            // Determina el color a dibujar basado en el material del objeto intersectado
+            let color = if intersect.is_intersecting {
+                let material = intersect.material;
+                Vec3::new(material.diffuse.r as f32 / 255.0, material.diffuse.g as f32 / 255.0, material.diffuse.b as f32 / 255.0)
+            } else {
+                Vec3::new(0.0, 0.0, 0.0) // Color negro si no hay intersección
+            };
+
+            // Dibuja el píxel en pantalla con el color determinado
+            framebuffer.point(x, y, color);
         }
     }
 }
