@@ -1,6 +1,7 @@
-use nalgebra_glm::{dot, Vec3};
-use crate::material::Material;
+use crate::ray_intersect::RayIntersect;  // Asegúrate de importar el rasgo
 use crate::intersect::Intersect;
+use crate::material::Material;
+use nalgebra_glm::{Vec3, dot};
 
 pub struct Sphere {
     pub center: Vec3,
@@ -10,14 +11,16 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn new(center: Vec3, radius: f32, material: Material) -> Self {
-        Sphere {
+        Self {
             center,
             radius,
             material,
         }
     }
+}
 
-    pub fn ray_intersect(&self, ray_origin: &Vec3, ray_direction: &Vec3) -> Intersect {
+impl RayIntersect for Sphere {
+    fn ray_intersect(&self, ray_origin: &Vec3, ray_direction: &Vec3) -> Intersect {
         let oc = ray_origin - self.center;
         let a = dot(ray_direction, ray_direction);
         let b = 2.0 * dot(&oc, ray_direction);
@@ -25,10 +28,15 @@ impl Sphere {
         let discriminant = b * b - 4.0 * a * c;
 
         if discriminant > 0.0 {
-            let distance = (-b - discriminant.sqrt()) / (2.0 * a);
-            Intersect::new(distance, self.material)
-        } else {
-            Intersect::empty()
+            let t = (-b - discriminant.sqrt()) / (2.0 * a);
+            if t > 0.0 {
+                let point = ray_origin + ray_direction * t;
+                let normal = (point - self.center).normalize();
+                let distance = t;
+                return Intersect::new(point, normal, distance, self.material);
+            }
         }
+
+        Intersect::empty()
     }
 }

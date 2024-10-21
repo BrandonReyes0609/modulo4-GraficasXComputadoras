@@ -7,14 +7,12 @@ pub struct Material {
 
 impl Material {
     pub fn new(diffuse: Color) -> Self {
-        Material {
-            diffuse,
-        }
+        Self { diffuse }
     }
 
     pub fn black() -> Self {
-        Material {
-            diffuse: Color::new(0, 0, 0),
+        Self {
+            diffuse: Color::black(),
         }
     }
 }

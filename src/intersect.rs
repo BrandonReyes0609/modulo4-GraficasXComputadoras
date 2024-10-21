@@ -1,15 +1,20 @@
+use nalgebra_glm::Vec3;
 use crate::material::Material;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Intersect {
+    pub point: Vec3,
+    pub normal: Vec3,
     pub distance: f32,
     pub is_intersecting: bool,
     pub material: Material,
 }
 
 impl Intersect {
-    pub fn new(distance: f32, material: Material) -> Self {
-        Intersect {
+    pub fn new(point: Vec3, normal: Vec3, distance: f32, material: Material) -> Self {
+        Self {
+            point,
+            normal,
             distance,
             is_intersecting: true,
             material,
@@ -17,7 +22,9 @@ impl Intersect {
     }
 
     pub fn empty() -> Self {
-        Intersect {
+        Self {
+            point: Vec3::zeros(),
+            normal: Vec3::zeros(),
             distance: 0.0,
             is_intersecting: false,
             material: Material::black(),

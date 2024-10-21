@@ -1,12 +1,30 @@
+use std::ops::Mul;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
 }
 
 impl Color {
-    pub fn new(r: u8, g: u8, b: u8) -> Self {
-        Color { r, g, b }
+    pub fn new(r: f32, g: f32, b: f32) -> Self {
+        Self { r, g, b }
+    }
+
+    pub fn black() -> Self {
+        Self { r: 0.0, g: 0.0, b: 0.0 }
+    }
+}
+
+impl Mul<f32> for Color {
+    type Output = Self;
+
+    fn mul(self, scalar: f32) -> Self {
+        Self {
+            r: self.r * scalar,
+            g: self.g * scalar,
+            b: self.b * scalar,
+        }
     }
 }
