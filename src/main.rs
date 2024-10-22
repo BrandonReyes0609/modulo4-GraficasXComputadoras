@@ -46,13 +46,23 @@ fn main() {
     // Inicializar la cámara
     let camera = Camera::new(Vec3::new(0.0, 0.0, 5.0), Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
 
-    // Inicializar los materiales y objetos (ahora con coeficiente especular)
-    let red_material = Material::new(Color::new(255.0, 0.0, 0.0), 32.0); // Valor especular de 32
-    let green_material = Material::new(Color::new(0.0, 255.0, 0.0), 64.0); // Valor especular de 64
+    // Inicializar los materiales y objetos
+    let rubber = Material::new(
+        Color::new(80.0, 0.0, 0.0),  // Color rojo
+        1.0,                         // Coeficiente especular
+        [0.9, 0.1],                  // 90% difusa, 10% especular
+    );
 
+    let ivory = Material::new(
+        Color::new(100.0, 100.0, 80.0),  // Color marfil
+        50.0,                            // Coeficiente especular alto
+        [0.6, 0.3],                      // 60% difusa, 30% especular
+    );
+
+    // Crear esferas con los materiales
     let objects = vec![
-        Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, red_material),
-        Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, green_material),
+        Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, rubber),  // Usar material 'rubber'
+        Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, ivory),   // Usar material 'ivory'
     ];
 
     // Inicializar la luz
