@@ -9,6 +9,10 @@
 
 ```magick output.ppm outputIMG.png```
 
+```cargo build --release```
+
+```./target/release/codigo```
+
 ## Códigos importantes repositorio-githusb
 1. Crear la nueva rama
 

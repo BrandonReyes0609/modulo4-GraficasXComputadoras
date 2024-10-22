@@ -13,14 +13,17 @@ impl Scene {
         Self { spheres, light_position }
     }
 
-    pub fn ray_intersect(&self, ray_origin: &Vec3, ray_direction: &Vec3) -> Intersect {
-        let mut closest_intersection = Intersect::empty();
+    pub fn ray_intersect(&self, ray_origin: &Vec3, ray_direction: &Vec3) -> Option<Intersect> {
+        let mut closest_intersection: Option<Intersect> = None;
+
         for sphere in &self.spheres {
-            let intersection = sphere.ray_intersect(ray_origin, ray_direction);
-            if intersection.is_intersecting && intersection.distance < closest_intersection.distance {
-                closest_intersection = intersection;
+            if let Some(intersection) = sphere.ray_intersect(ray_origin, ray_direction) {
+                if closest_intersection.is_none() || intersection.distance < closest_intersection.unwrap().distance {
+                    closest_intersection = Some(intersection);
+                }
             }
         }
+
         closest_intersection
     }
 }

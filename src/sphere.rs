@@ -1,4 +1,4 @@
-use crate::ray_intersect::RayIntersect;  // Asegúrate de importar el rasgo
+use crate::ray_intersect::RayIntersect;
 use crate::intersect::Intersect;
 use crate::material::Material;
 use nalgebra_glm::{Vec3, dot};
@@ -20,23 +20,33 @@ impl Sphere {
 }
 
 impl RayIntersect for Sphere {
-    fn ray_intersect(&self, ray_origin: &Vec3, ray_direction: &Vec3) -> Intersect {
+    fn ray_intersect(&self, ray_origin: &Vec3, ray_direction: &Vec3) -> Option<Intersect> {
         let oc = ray_origin - self.center;
         let a = dot(ray_direction, ray_direction);
         let b = 2.0 * dot(&oc, ray_direction);
         let c = dot(&oc, &oc) - self.radius * self.radius;
         let discriminant = b * b - 4.0 * a * c;
-
-        if discriminant > 0.0 {
-            let t = (-b - discriminant.sqrt()) / (2.0 * a);
-            if t > 0.0 {
-                let point = ray_origin + ray_direction * t;
-                let normal = (point - self.center).normalize();
-                let distance = t;
-                return Intersect::new(point, normal, distance, self.material);
-            }
+        
+        if discriminant < 0.0 {
+            // Si no hay intersección, devuelve `None`
+            return None;
         }
-
-        Intersect::empty()
+        
+        let t = (-b - discriminant.sqrt()) / (2.0 * a);
+        if t > 0.0 {
+            // Si hay intersección, calcula el punto de impacto y la normal
+            let hit_point = ray_origin + ray_direction * t;
+            let normal = (hit_point - self.center).normalize();
+            return Some(Intersect {
+                distance: t,
+                point: hit_point,
+                normal,
+                material: self.material.clone(),
+                is_intersecting: true,
+            });
+        }
+        
+        // Devuelve `None` si no se encuentra intersección
+        None
     }
 }

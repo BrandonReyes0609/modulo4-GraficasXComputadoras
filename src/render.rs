@@ -8,7 +8,8 @@ pub fn render(framebuffer: &mut Framebuffer, camera: &Camera, scene: &Scene) {
         for x in 0..framebuffer.width {
             let ray_direction = camera.calculate_ray_direction(x, y, framebuffer);
             let color = cast_ray(scene, &camera.eye, &ray_direction);
-            framebuffer.set_pixel(x, y, color);  // Color convertido internamente
+            framebuffer.set_pixel(x, y, color);
         }
     }
+    
 }
