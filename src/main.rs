@@ -46,9 +46,9 @@ fn main() {
     // Inicializar la cámara
     let camera = Camera::new(Vec3::new(0.0, 0.0, 5.0), Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
 
-    // Inicializar los materiales y objetos
-    let red_material = Material::new(Color::new(255.0, 0.0, 0.0));
-    let green_material = Material::new(Color::new(0.0, 255.0, 0.0));
+    // Inicializar los materiales y objetos (ahora con coeficiente especular)
+    let red_material = Material::new(Color::new(255.0, 0.0, 0.0), 32.0); // Valor especular de 32
+    let green_material = Material::new(Color::new(0.0, 255.0, 0.0), 64.0); // Valor especular de 64
 
     let objects = vec![
         Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, red_material),

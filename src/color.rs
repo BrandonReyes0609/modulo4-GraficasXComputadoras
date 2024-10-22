@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Mul, Add};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
@@ -39,6 +39,19 @@ impl Mul<Color> for Color {
             r: self.r * other.r,
             g: self.g * other.g,
             b: self.b * other.b,
+        }
+    }
+}
+
+// Implementar la suma de dos colores
+impl Add for Color {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            r: self.r + other.r,
+            g: self.g + other.g,
+            b: self.b + other.b,
         }
     }
 }
