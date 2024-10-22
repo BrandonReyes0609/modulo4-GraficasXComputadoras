@@ -6,6 +6,7 @@ use crate::sphere::Sphere;
 use crate::camera::Camera;
 use crate::render::render;
 use crate::framebuffer::Framebuffer;
+use crate::light::Light;
 use pixels::{Pixels, SurfaceTexture};
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -21,6 +22,7 @@ mod scene;
 mod sphere;
 mod intersect;
 mod cast_ray;
+mod light; // Asegúrate de agregar esto
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -48,9 +50,16 @@ fn main() {
         Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, red_material),
         Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, green_material),
     ];
-    
 
     let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
+
+    // Inicializar la luz
+    let light = Light::new(
+        Vec3::new(5.0, 5.0, 5.0),
+        Color::new(255.0, 255.0, 255.0),
+        1.0,
+    );
+
     let mut framebuffer = Framebuffer::new(WIDTH as usize, HEIGHT as usize);
 
     // Ejecutar el bucle de eventos para la ventana
@@ -63,11 +72,10 @@ fn main() {
                 *control_flow = ControlFlow::Exit;
             }
             Event::RedrawRequested(_) => {
-                // Renderizar la escena con el raytracer
-                render(&mut framebuffer, &camera, &scene);
+                // Renderizar la escena con el raytracer, pasando la luz como parámetro
+                render(&mut framebuffer, &camera, &scene, &light);
 
                 // Actualizar los píxeles en la ventana
-                //render_framebuffer_to_pixels(&mut framebuffer, pixels.get_frame_mut());
                 render_framebuffer_to_pixels(&mut framebuffer, pixels.frame_mut());
 
                 if pixels

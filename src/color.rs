@@ -17,6 +17,7 @@ impl Color {
     }
 }
 
+// Implementar multiplicación de Color por un escalar (f32)
 impl Mul<f32> for Color {
     type Output = Self;
 
@@ -25,6 +26,19 @@ impl Mul<f32> for Color {
             r: self.r * scalar,
             g: self.g * scalar,
             b: self.b * scalar,
+        }
+    }
+}
+
+// Implementar multiplicación de Color por otro Color (componente por componente)
+impl Mul<Color> for Color {
+    type Output = Self;
+
+    fn mul(self, other: Color) -> Self {
+        Self {
+            r: self.r * other.r,
+            g: self.g * other.g,
+            b: self.b * other.b,
         }
     }
 }
