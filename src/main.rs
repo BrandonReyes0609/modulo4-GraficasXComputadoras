@@ -6,7 +6,7 @@ use crate::sphere::Sphere;
 use crate::camera::Camera;
 use crate::render::render;
 use crate::framebuffer::Framebuffer;
-use crate::light::Light;
+use crate::light::Light;  // Importar Light
 use pixels::{Pixels, SurfaceTexture};
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -22,7 +22,7 @@ mod scene;
 mod sphere;
 mod intersect;
 mod cast_ray;
-mod light; // Asegúrate de agregar esto
+mod light;  // Asegúrate de tener este módulo
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -40,9 +40,13 @@ fn main() {
     let surface_texture = SurfaceTexture::new(WIDTH, HEIGHT, &window);
     let mut pixels = Pixels::new(WIDTH, HEIGHT, surface_texture).unwrap();
 
-    // Inicializar la escena y la cámara
+    // Crear una instancia de Framebuffer
+    let mut framebuffer = Framebuffer::new(WIDTH as usize, HEIGHT as usize);
+
+    // Inicializar la cámara
     let camera = Camera::new(Vec3::new(0.0, 0.0, 5.0), Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
 
+    // Inicializar los materiales y objetos
     let red_material = Material::new(Color::new(255.0, 0.0, 0.0));
     let green_material = Material::new(Color::new(0.0, 255.0, 0.0));
 
@@ -51,16 +55,14 @@ fn main() {
         Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, green_material),
     ];
 
-    let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
-
     // Inicializar la luz
     let light = Light::new(
         Vec3::new(5.0, 5.0, 5.0),
-        Color::new(255.0, 255.0, 255.0),
+        Color::new(255.0, 255.0, 255.0), // Luz blanca
         1.0,
     );
 
-    let mut framebuffer = Framebuffer::new(WIDTH as usize, HEIGHT as usize);
+    let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
 
     // Ejecutar el bucle de eventos para la ventana
     event_loop.run(move |event, _, control_flow| {
@@ -72,7 +74,7 @@ fn main() {
                 *control_flow = ControlFlow::Exit;
             }
             Event::RedrawRequested(_) => {
-                // Renderizar la escena con el raytracer, pasando la luz como parámetro
+                // Renderizar la escena con el raytracer
                 render(&mut framebuffer, &camera, &scene, &light);
 
                 // Actualizar los píxeles en la ventana
