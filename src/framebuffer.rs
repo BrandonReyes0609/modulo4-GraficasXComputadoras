@@ -1,4 +1,4 @@
-use crate::color::Color;  // Asegúrate de importar la estructura `Color`
+use crate::color::Color;  // Asegúrate de importar la estructura Color
 use nalgebra_glm::Vec3;
 
 pub struct Framebuffer {
@@ -24,3 +24,4 @@ impl Framebuffer {
         self.buffer[y * self.width + x]
     }
 }
+

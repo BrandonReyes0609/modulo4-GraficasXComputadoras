@@ -28,7 +28,7 @@ impl RayIntersect for Sphere {
         let discriminant = b * b - 4.0 * a * c;
         
         if discriminant < 0.0 {
-            // Si no hay intersección, devuelve `None`
+            // Si no hay intersección, devuelve None
             return None;
         }
         
@@ -46,7 +46,7 @@ impl RayIntersect for Sphere {
             });
         }
         
-        // Devuelve `None` si no se encuentra intersección
+        // Devuelve None si no se encuentra intersección
         None
     }
 }

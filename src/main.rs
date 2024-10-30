@@ -6,11 +6,12 @@ use crate::sphere::Sphere;
 use crate::camera::Camera;
 use crate::render::render;
 use crate::framebuffer::Framebuffer;
-use crate::light::Light;  // Importar Light
+use crate::light::Light;
 use pixels::{Pixels, SurfaceTexture};
-use winit::event::{Event, WindowEvent};
+use winit::event::{Event, WindowEvent, MouseButton, ElementState};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
+use winit::dpi::PhysicalPosition;
 
 mod camera;
 mod color;
@@ -22,13 +23,12 @@ mod scene;
 mod sphere;
 mod intersect;
 mod cast_ray;
-mod light;  // Asegúrate de tener este módulo
+mod light;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 
 fn main() {
-    // Crear el EventLoop de winit
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Rust Graphics - Raytracer")
@@ -36,67 +36,88 @@ fn main() {
         .build(&event_loop)
         .unwrap();
 
-    // Crear un framebuffer donde renderizar los píxeles
     let surface_texture = SurfaceTexture::new(WIDTH, HEIGHT, &window);
     let mut pixels = Pixels::new(WIDTH, HEIGHT, surface_texture).unwrap();
-
-    // Crear una instancia de Framebuffer
     let mut framebuffer = Framebuffer::new(WIDTH as usize, HEIGHT as usize);
 
-    // Inicializar la cámara
-    let camera = Camera::new(Vec3::new(0.0, 0.0, 5.0), Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
-
-    // Inicializar los materiales y objetos
     let rubber = Material::new(
-        Color::new(80.0, 0.0, 0.0),  // Color rojo
-        1.0,                         // Coeficiente especular
-        [0.9, 0.1, 0.0, 0.0],        // Albedo (90% difuso, 10% especular, sin reflexión ni transparencia)
-        1.0                          // Índice de refracción (por ejemplo, 1.0 para aire)
-    );
-    // Opcional: Ejemplo de material para vidrio, si deseas añadir transparencia y refracción
-    let glass = Material::new(
-        Color::new(100.0, 100.0, 100.0), // Color transparente
-        50.0,                            // Coeficiente especular alto
-        [0.0, 0.5, 0.1, 0.9],            // Albedo con transparencia (50% especular, 10% reflexión, 90% transparencia)
-        1.5                              // Índice de refracción (1.5 para vidrio)
+        Color::new(80.0, 0.0, 0.0),
+        1.0,
+        [0.9, 0.1, 0.0, 0.0],
+        1.0,
     );
 
     let ivory = Material::new(
-        Color::new(100.0, 100.0, 80.0),  // Color marfil
-        50.0,                            // Coeficiente especular alto
-        [0.6, 0.3, 0.0, 0.0],            // Albedo (60% difuso, 30% especular, sin reflexión ni transparencia)
-        1.0                              // Índice de refracción (por ejemplo, 1.0 para aire o materiales no transparentes)
+        Color::new(100.0, 100.0, 80.0),
+        50.0,
+        [0.6, 0.3, 0.0, 0.0],
+        1.0,
     );
 
-    // Crear esferas con los materiales
     let objects = vec![
-        Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, rubber),  // Usar material 'rubber'
-        Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, ivory),   // Usar material 'ivory'
+        Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, rubber),
+        Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, ivory),
     ];
 
-    // Inicializar la luz
     let light = Light::new(
         Vec3::new(5.0, 5.0, 5.0),
-        Color::new(255.0, 255.0, 255.0), // Luz blanca
+        Color::new(255.0, 255.0, 255.0),
         1.0,
     );
 
     let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
 
-    // Ejecutar el bucle de eventos para la ventana
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => {
-                *control_flow = ControlFlow::Exit;
-            }
-            Event::RedrawRequested(_) => {
-                // Renderizar la escena con el raytracer
-                render(&mut framebuffer, &camera, &scene, &light);
+    // Variables para el control de la cámara
+    let mut camera_distance = 5.0;
+    let mut camera_yaw: f32 = 0.0;
+    let mut camera_pitch: f32 = 0.0;
+    let rotation_speed: f32 = 0.005;
 
-                // Actualizar los píxeles en la ventana
+    let mut is_left_mouse_button_pressed = false;
+    let mut last_cursor_position: Option<PhysicalPosition<f64>> = None;
+
+    event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Poll;
+
+        match event {
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::CloseRequested => {
+                    *control_flow = ControlFlow::Exit;
+                }
+                WindowEvent::MouseInput { button: MouseButton::Left, state, .. } => {
+                    is_left_mouse_button_pressed = state == ElementState::Pressed;
+                }
+                WindowEvent::CursorMoved { position, .. } => {
+                    if is_left_mouse_button_pressed {
+                        if let Some(last_pos) = last_cursor_position {
+                            let dx = (position.x - last_pos.x) as f32;
+                            let dy = (position.y - last_pos.y) as f32;
+
+                            // Actualizamos el ángulo de la cámara en función del movimiento del mouse
+                            camera_yaw += dx * rotation_speed;
+                            camera_pitch = (camera_pitch + dy * rotation_speed)
+                                .clamp(-std::f32::consts::FRAC_PI_2, std::f32::consts::FRAC_PI_2);
+                        }
+                        last_cursor_position = Some(position);
+                    } else {
+                        last_cursor_position = Some(position);
+                    }
+                }
+                _ => {}
+            },
+            Event::RedrawRequested(_) => {
+                // Convertir el ángulo en posición de cámara
+                let eye_x = camera_distance * camera_yaw.cos() * camera_pitch.cos();
+                let eye_y = camera_distance * camera_pitch.sin();
+                let eye_z = camera_distance * camera_yaw.sin() * camera_pitch.cos();
+
+                let camera = Camera::new(
+                    Vec3::new(eye_x, eye_y, eye_z),
+                    Vec3::new(0.0, 0.0, -5.0),
+                    Vec3::new(0.0, 1.0, 0.0),
+                );
+
+                render(&mut framebuffer, &camera, &scene, &light);
                 render_framebuffer_to_pixels(&mut framebuffer, pixels.frame_mut());
 
                 if pixels
@@ -109,7 +130,7 @@ fn main() {
             }
             _ => {}
         }
-        window.request_redraw(); // Solicitar una nueva actualización de ventana
+        window.request_redraw();
     });
 }
 
@@ -122,7 +143,7 @@ fn render_framebuffer_to_pixels(framebuffer: &Framebuffer, frame: &mut [u8]) {
         // Obtener el color del framebuffer
         let color = framebuffer.get_pixel(x, y);
 
-        // Convertir Vec3 a RGBA (se espera que el framebuffer devuelva un Vec3 con valores de 0.0 a 1.0)
+        // Convertir Vec3 a RGBA
         let rgba = [
             (color.x * 255.0) as u8,
             (color.y * 255.0) as u8,
