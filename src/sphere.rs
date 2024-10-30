@@ -17,6 +17,13 @@ impl Sphere {
             material,
         }
     }
+
+    pub fn get_uv(&self, point: &Vec3) -> (f32, f32) {
+        let hit_vec = (point - self.center).normalize();
+        let u = 0.5 + hit_vec.z.atan2(hit_vec.x) / (2.0 * std::f32::consts::PI);
+        let v = 0.5 - hit_vec.y.asin() / std::f32::consts::PI;
+        (u, v)
+    }
 }
 
 impl RayIntersect for Sphere {
@@ -28,25 +35,16 @@ impl RayIntersect for Sphere {
         let discriminant = b * b - 4.0 * a * c;
         
         if discriminant < 0.0 {
-            // Si no hay intersección, devuelve None
             return None;
         }
         
         let t = (-b - discriminant.sqrt()) / (2.0 * a);
         if t > 0.0 {
-            // Si hay intersección, calcula el punto de impacto y la normal
             let hit_point = ray_origin + ray_direction * t;
             let normal = (hit_point - self.center).normalize();
-            return Some(Intersect {
-                distance: t,
-                point: hit_point,
-                normal,
-                material: self.material.clone(),
-                is_intersecting: true,
-            });
+            let (u, v) = self.get_uv(&hit_point);
+            return Some(Intersect::new(hit_point, normal, t, self.material.clone(), u, v));
         }
-        
-        // Devuelve None si no se encuentra intersección
         None
     }
 }

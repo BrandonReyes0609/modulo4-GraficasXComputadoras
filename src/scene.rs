@@ -18,7 +18,8 @@ impl Scene {
 
         for sphere in &self.spheres {
             if let Some(intersection) = sphere.ray_intersect(ray_origin, ray_direction) {
-                if closest_intersection.is_none() || intersection.distance < closest_intersection.unwrap().distance {
+                if closest_intersection.is_none() || intersection.distance < closest_intersection.as_ref().unwrap().distance {
+
                     closest_intersection = Some(intersection);
                 }
             }

@@ -13,6 +13,8 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit::dpi::PhysicalPosition;
 
+use image::io::Reader as ImageReader;
+
 mod camera;
 mod color;
 mod framebuffer;
@@ -29,6 +31,22 @@ const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 
 fn main() {
+
+
+    // Cargar texturas
+    let concrete_texture = ImageReader::open("assets/concrete.jpg").unwrap().decode().unwrap();
+    let stone_texture = ImageReader::open("assets/stone.jpg").unwrap().decode().unwrap();
+
+    // Crear materiales con texturas
+    let concrete_material = Material::new(Color::black(), 1.0, [0.9, 0.1, 0.0, 0.0], 1.0, Some(concrete_texture));
+    let stone_material = Material::new(Color::black(), 1.0, [0.9, 0.1, 0.0, 0.0], 1.0, Some(stone_texture));
+
+    // Crear objetos
+    let objects = vec![
+        Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, concrete_material),
+        Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, stone_material),
+    ];
+    
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Rust Graphics - Raytracer")
@@ -45,13 +63,15 @@ fn main() {
         1.0,
         [0.9, 0.1, 0.0, 0.0],
         1.0,
+        None, // Especifica que no tiene textura
     );
-
+    
     let ivory = Material::new(
         Color::new(100.0, 100.0, 80.0),
         50.0,
         [0.6, 0.3, 0.0, 0.0],
         1.0,
+        None, // Especifica que no tiene textura
     );
 
     let objects = vec![
@@ -64,8 +84,10 @@ fn main() {
         Color::new(255.0, 255.0, 255.0),
         1.0,
     );
-
+    let light = Light::new(Vec3::new(5.0, 5.0, 5.0), Color::new(255.0, 255.0, 255.0), 1.0);
     let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
+
+    //let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
 
     // Variables para el control de la cámara
     let mut camera_distance = 5.0;

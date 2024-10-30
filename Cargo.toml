@@ -8,3 +8,4 @@ nalgebra = "0.28"
 nalgebra-glm = "0.19"
 pixels = "0.14.0"  # Usa la última versión de pixels
 winit = "0.27"     # Usa una versión compatible con pixels
+image = "0.23"     # Agrega esta línea para la dependencia de image
