@@ -50,13 +50,22 @@ fn main() {
     let rubber = Material::new(
         Color::new(80.0, 0.0, 0.0),  // Color rojo
         1.0,                         // Coeficiente especular
-        [0.9, 0.1],                  // 90% difusa, 10% especular
+        [0.9, 0.1, 0.0, 0.0],        // Albedo (90% difuso, 10% especular, sin reflexión ni transparencia)
+        1.0                          // Índice de refracción (por ejemplo, 1.0 para aire)
+    );
+    // Opcional: Ejemplo de material para vidrio, si deseas añadir transparencia y refracción
+    let glass = Material::new(
+        Color::new(100.0, 100.0, 100.0), // Color transparente
+        50.0,                            // Coeficiente especular alto
+        [0.0, 0.5, 0.1, 0.9],            // Albedo con transparencia (50% especular, 10% reflexión, 90% transparencia)
+        1.5                              // Índice de refracción (1.5 para vidrio)
     );
 
     let ivory = Material::new(
         Color::new(100.0, 100.0, 80.0),  // Color marfil
         50.0,                            // Coeficiente especular alto
-        [0.6, 0.3],                      // 60% difusa, 30% especular
+        [0.6, 0.3, 0.0, 0.0],            // Albedo (60% difuso, 30% especular, sin reflexión ni transparencia)
+        1.0                              // Índice de refracción (por ejemplo, 1.0 para aire o materiales no transparentes)
     );
 
     // Crear esferas con los materiales
