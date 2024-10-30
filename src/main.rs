@@ -14,6 +14,7 @@ use winit::window::WindowBuilder;
 use winit::dpi::PhysicalPosition;
 
 use image::io::Reader as ImageReader;
+use std::time::{Duration, Instant};
 
 mod camera;
 mod color;
@@ -31,22 +32,26 @@ const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 
 fn main() {
-
+    let frame_duration = Duration::from_secs_f32(1.0 / 60.0); // Limitar a 60 FPS
+    let mut next_frame_time = Instant::now() + frame_duration;
 
     // Cargar texturas
     let concrete_texture = ImageReader::open("assets/concrete.jpg").unwrap().decode().unwrap();
     let stone_texture = ImageReader::open("assets/stone.jpg").unwrap().decode().unwrap();
 
     // Crear materiales con texturas
-    let concrete_material = Material::new(Color::black(), 1.0, [0.9, 0.1, 0.0, 0.0], 1.0, Some(concrete_texture));
-    let stone_material = Material::new(Color::black(), 1.0, [0.9, 0.1, 0.0, 0.0], 1.0, Some(stone_texture));
+    let concrete_material = Material::new(Color::black(), 1.0, [0.9, 0.1, 0.0, 0.0], 1.0, Some(concrete_texture.clone()));
+    let stone_material = Material::new(Color::black(), 1.0, [0.9, 0.1, 0.0, 0.0], 1.0, Some(stone_texture.clone()));
 
     // Crear objetos
     let objects = vec![
         Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, concrete_material),
         Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, stone_material),
     ];
-    
+
+    let light = Light::new(Vec3::new(5.0, 5.0, 5.0), Color::new(255.0, 255.0, 255.0), 1.0);
+    let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title("Rust Graphics - Raytracer")
@@ -58,37 +63,6 @@ fn main() {
     let mut pixels = Pixels::new(WIDTH, HEIGHT, surface_texture).unwrap();
     let mut framebuffer = Framebuffer::new(WIDTH as usize, HEIGHT as usize);
 
-    let rubber = Material::new(
-        Color::new(80.0, 0.0, 0.0),
-        1.0,
-        [0.9, 0.1, 0.0, 0.0],
-        1.0,
-        None, // Especifica que no tiene textura
-    );
-    
-    let ivory = Material::new(
-        Color::new(100.0, 100.0, 80.0),
-        50.0,
-        [0.6, 0.3, 0.0, 0.0],
-        1.0,
-        None, // Especifica que no tiene textura
-    );
-
-    let objects = vec![
-        Sphere::new(Vec3::new(0.0, 0.0, -5.0), 1.0, rubber),
-        Sphere::new(Vec3::new(2.0, 0.0, -5.0), 1.0, ivory),
-    ];
-
-    let light = Light::new(
-        Vec3::new(5.0, 5.0, 5.0),
-        Color::new(255.0, 255.0, 255.0),
-        1.0,
-    );
-    let light = Light::new(Vec3::new(5.0, 5.0, 5.0), Color::new(255.0, 255.0, 255.0), 1.0);
-    let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
-
-    //let scene = Scene::new(objects, Vec3::new(0.0, 5.0, 0.0));
-
     // Variables para el control de la cámara
     let mut camera_distance = 5.0;
     let mut camera_yaw: f32 = 0.0;
@@ -99,7 +73,7 @@ fn main() {
     let mut last_cursor_position: Option<PhysicalPosition<f64>> = None;
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+        *control_flow = ControlFlow::WaitUntil(next_frame_time);
 
         match event {
             Event::WindowEvent { event, .. } => match event {
@@ -115,7 +89,6 @@ fn main() {
                             let dx = (position.x - last_pos.x) as f32;
                             let dy = (position.y - last_pos.y) as f32;
 
-                            // Actualizamos el ángulo de la cámara en función del movimiento del mouse
                             camera_yaw += dx * rotation_speed;
                             camera_pitch = (camera_pitch + dy * rotation_speed)
                                 .clamp(-std::f32::consts::FRAC_PI_2, std::f32::consts::FRAC_PI_2);
@@ -128,26 +101,30 @@ fn main() {
                 _ => {}
             },
             Event::RedrawRequested(_) => {
-                // Convertir el ángulo en posición de cámara
-                let eye_x = camera_distance * camera_yaw.cos() * camera_pitch.cos();
-                let eye_y = camera_distance * camera_pitch.sin();
-                let eye_z = camera_distance * camera_yaw.sin() * camera_pitch.cos();
+                if Instant::now() >= next_frame_time {
+                    next_frame_time = Instant::now() + frame_duration;
 
-                let camera = Camera::new(
-                    Vec3::new(eye_x, eye_y, eye_z),
-                    Vec3::new(0.0, 0.0, -5.0),
-                    Vec3::new(0.0, 1.0, 0.0),
-                );
+                    // Convertir el ángulo en posición de cámara
+                    let eye_x = camera_distance * camera_yaw.cos() * camera_pitch.cos();
+                    let eye_y = camera_distance * camera_pitch.sin();
+                    let eye_z = camera_distance * camera_yaw.sin() * camera_pitch.cos();
 
-                render(&mut framebuffer, &camera, &scene, &light);
-                render_framebuffer_to_pixels(&mut framebuffer, pixels.frame_mut());
+                    let camera = Camera::new(
+                        Vec3::new(eye_x, eye_y, eye_z),
+                        Vec3::new(0.0, 0.0, -5.0),
+                        Vec3::new(0.0, 1.0, 0.0),
+                    );
 
-                if pixels
-                    .render()
-                    .map_err(|e| eprintln!("pixels.render() failed: {}", e))
-                    .is_err()
-                {
-                    *control_flow = ControlFlow::Exit;
+                    render(&mut framebuffer, &camera, &scene, &light);
+                    render_framebuffer_to_pixels(&mut framebuffer, pixels.frame_mut());
+
+                    if pixels
+                        .render()
+                        .map_err(|e| eprintln!("pixels.render() failed: {}", e))
+                        .is_err()
+                    {
+                        *control_flow = ControlFlow::Exit;
+                    }
                 }
             }
             _ => {}
@@ -162,10 +139,7 @@ fn render_framebuffer_to_pixels(framebuffer: &Framebuffer, frame: &mut [u8]) {
         let x = i % WIDTH as usize;
         let y = i / WIDTH as usize;
 
-        // Obtener el color del framebuffer
         let color = framebuffer.get_pixel(x, y);
-
-        // Convertir Vec3 a RGBA
         let rgba = [
             (color.x * 255.0) as u8,
             (color.y * 255.0) as u8,

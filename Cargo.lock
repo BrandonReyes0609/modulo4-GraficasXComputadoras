@@ -266,6 +266,7 @@ dependencies = [
  "nalgebra 0.28.0",
  "nalgebra-glm",
  "pixels",
+ "rayon",
  "winit",
 ]
 
